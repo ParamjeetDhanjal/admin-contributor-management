@@ -52,7 +52,6 @@ export const fetchStories = async () => {
   const { data, error } = await supabase
     .from('stories')
     .select('*, profiles(*, teams(*))')
-    .eq('is_deleted', false)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return data as (Story & { profiles: Profile & { teams: Team | null } })[];

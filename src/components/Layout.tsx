@@ -13,15 +13,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
 import { signOut } from '@/services/authService';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 interface LayoutProps {
@@ -32,6 +25,20 @@ export default function Layout({ children }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [userEmail, setUserEmail] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const getUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) setUserEmail(user.email || null);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+    getUser();
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -141,25 +148,19 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="p-1 h-auto rounded-lg hover:bg-slate-100 gap-3">
-                  <div className="hidden lg:flex flex-col items-start text-left pr-2">
-                    <span className="text-sm font-medium leading-none">Administrator</span>
-                    <span className="text-xs text-slate-500 mt-1">System Access</span>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile Settings</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-rose-600 focus:text-rose-600" onClick={handleSignOut}>
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100">
+              <Avatar className="h-7 w-7 border shadow-sm shrink-0">
+                <AvatarFallback className="bg-slate-900 text-white text-[10px] font-bold">
+                  {userEmail?.charAt(0).toUpperCase() || 'A'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col items-start text-left">
+                <span className="text-xs font-bold text-slate-900 truncate max-w-[150px]">
+                  {userEmail || 'Administrator'}
+                </span>
+                <span className="text-[8px] text-slate-400 font-mono uppercase tracking-widest">System Access</span>
+              </div>
+            </div>
           </div>
         </header>
 

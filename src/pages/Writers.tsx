@@ -82,8 +82,8 @@ export default function Writers() {
   };
 
   const filteredWriters = writers.filter(w => 
-    w.author_name?.toLowerCase().includes(search.toLowerCase()) ||
-    w.email?.toLowerCase().includes(search.toLowerCase())
+    (w.author_name?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (w.email?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   const payPerTaskWriters = filteredWriters.filter(w => w.teams?.pay_structure === 'task');
@@ -135,9 +135,8 @@ export default function Writers() {
                 <TableRow key={writer.id} className="group hover:bg-slate-50/50 transition-colors">
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8 border shadow-sm">
-                        <AvatarImage src={`https://avatar.vercel.sh/${writer.email}`} />
-                        <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">
+                      <Avatar className="h-8 w-8 border shadow-sm bg-transparent">
+                        <AvatarFallback className="bg-transparent text-slate-900 font-bold">
                           {writer.author_name?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>

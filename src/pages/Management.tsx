@@ -34,14 +34,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { 
   Select, 
   SelectContent, 
   SelectItem, 
@@ -121,10 +113,10 @@ export default function Management() {
         fetchTeams()
       ]);
       
-      let updatedTeams = [...teamsData];
+      let updatedTeams = [...(teamsData || [])];
       
       // 1. Ensure Webdesk exists
-      const webdeskTeam = updatedTeams.find(t => t.name.toLowerCase() === 'webdesk');
+      const webdeskTeam = updatedTeams.find(t => t.name?.toLowerCase() === 'webdesk');
       if (webdeskTeam && webdeskTeam.name !== 'Webdesk') {
         await updateTeam(webdeskTeam.id, { name: 'Webdesk' });
         webdeskTeam.name = 'Webdesk';
@@ -134,21 +126,21 @@ export default function Management() {
       }
 
       // 2. Ensure Social exists
-      const socialTeam = updatedTeams.find(t => t.name.toLowerCase() === 'social');
+      const socialTeam = updatedTeams.find(t => t.name?.toLowerCase() === 'social');
       if (!socialTeam) {
         const newTeam = await createTeam({ name: 'Social' });
         updatedTeams.push({ ...newTeam, memberCount: 0 });
       }
 
       // 3. Ensure Video exists
-      const videoTeam = updatedTeams.find(t => t.name.toLowerCase() === 'video');
+      const videoTeam = updatedTeams.find(t => t.name?.toLowerCase() === 'video');
       if (!videoTeam) {
         const newTeam = await createTeam({ name: 'Video' });
         updatedTeams.push({ ...newTeam, memberCount: 0 });
       }
 
-      setWriters(writersData);
-      setTeams(updatedTeams.filter(t => ['webdesk', 'social', 'video'].includes(t.name.toLowerCase())));
+      setWriters(writersData || []);
+      setTeams(updatedTeams.filter(t => ['webdesk', 'social', 'video'].includes(t.name?.toLowerCase() || '')));
     } catch (error: any) {
       console.error('Error loading data:', error);
       toast.error('Failed to load management data');
@@ -186,6 +178,9 @@ export default function Management() {
 
   const [selectedTeamId, setSelectedTeamId] = React.useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  
+  const [selectedTeamForDetails, setSelectedTeamForDetails] = React.useState<Team | null>(null);
+  const [isTeamDetailsOpen, setIsTeamDetailsOpen] = React.useState(false);
   
   const handleAddUser = async () => {
     if (!newUser.email || !newUser.author_name) {
@@ -247,8 +242,8 @@ export default function Management() {
   };
 
   const filteredWriters = writers.filter(w => 
-    (w.author_name?.toLowerCase().includes(search.toLowerCase()) ||
-    w.email?.toLowerCase().includes(search.toLowerCase())) &&
+    ((w.author_name?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (w.email?.toLowerCase() || '').includes(search.toLowerCase())) &&
     (!selectedTeamId || w.team_id === selectedTeamId) &&
     (!selectedCategory || w.webdesk_category === selectedCategory)
   );
@@ -291,12 +286,18 @@ export default function Management() {
                 const selectedTeam = teams.find(t => t.id === writer.team_id);
                 
                 return (
-                  <TableRow key={writer.id} className="group hover:bg-slate-50/50 transition-colors">
+                  <TableRow 
+                    key={writer.id} 
+                    className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setEditingUser(writer);
+                      setIsUserDialogOpen(true);
+                    }}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 border shadow-sm">
-                          <AvatarImage src={`https://avatar.vercel.sh/${writer.email}`} />
-                          <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">
+                        <Avatar className="h-9 w-9 border shadow-sm bg-transparent">
+                          <AvatarFallback className="bg-transparent text-slate-900 font-bold">
                             {writer.author_name?.charAt(0) || 'U'}
                           </AvatarFallback>
                         </Avatar>
@@ -313,7 +314,7 @@ export default function Management() {
                           {writer.phone_number || 'No number'}
                         </div>
                         <Badge variant={writer.role === 'admin' ? 'default' : 'outline'} className="text-[10px] h-4">
-                          {writer.role.toUpperCase()}
+                          {(writer.role || 'user').toUpperCase()}
                         </Badge>
                       </div>
                     </TableCell>
@@ -334,7 +335,7 @@ export default function Management() {
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end gap-2">
                         <Button 
                           variant="ghost" 
@@ -372,6 +373,76 @@ export default function Management() {
 
   return (
     <div className="space-y-8">
+      {/* Team Details Dialog */}
+      <Dialog open={isTeamDetailsOpen} onOpenChange={setIsTeamDetailsOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Layers className="h-5 w-5 text-slate-900" />
+              {selectedTeamForDetails?.name} Team Details
+            </DialogTitle>
+            <DialogDescription>
+              Overview of members and performance for this team.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="p-4 rounded-2xl bg-slate-50 border">
+                <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Total Members</p>
+                <p className="text-3xl font-black text-slate-900 mt-1">
+                  {writers.filter(w => w.team_id === selectedTeamForDetails?.id).length}
+                </p>
+              </div>
+              <div className="p-4 rounded-2xl bg-slate-50 border">
+                <p className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Team Structure</p>
+                <p className="text-sm font-bold text-slate-700 mt-1">
+                  {selectedTeamForDetails?.name === 'Webdesk' ? 'Desk Writers & Columnists' : 'Standard Contributors'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Active Members</p>
+              <div className="max-h-[200px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                {writers.filter(w => w.team_id === selectedTeamForDetails?.id).map(member => (
+                  <div key={member.id} className="flex items-center justify-between p-2 rounded-xl border bg-white">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8 border">
+                        <AvatarImage src={`https://avatar.vercel.sh/${member.email}`} />
+                        <AvatarFallback>{member.author_name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-xs font-bold text-slate-900">{member.author_name}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">{member.email}</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-[8px] uppercase">{member.pay_structure}</Badge>
+                  </div>
+                ))}
+                {writers.filter(w => w.team_id === selectedTeamForDetails?.id).length === 0 && (
+                  <p className="text-center py-4 text-xs text-slate-400 italic">No members assigned to this team yet.</p>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsTeamDetailsOpen(false);
+                setSelectedTeamId(selectedTeamForDetails?.id || null);
+                setSelectedCategory(null);
+                setActiveTab('all');
+              }}
+              className="w-full gap-2"
+            >
+              <Users className="h-4 w-4" />
+              View in Directory
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[400px]">
@@ -588,9 +659,8 @@ export default function Management() {
                   key={team.id} 
                   className="border shadow-sm bg-white hover:border-slate-900 transition-all cursor-pointer group"
                   onClick={() => {
-                    setSelectedTeamId(team.id);
-                    setSelectedCategory(null);
-                    setActiveTab('all');
+                    setSelectedTeamForDetails(team);
+                    setIsTeamDetailsOpen(true);
                   }}
                 >
                   <CardHeader className="pb-4">
@@ -646,9 +716,8 @@ export default function Management() {
                       
                       <div className="flex -space-x-2">
                         {members.slice(0, 8).map(m => (
-                          <Avatar key={m.id} className="h-8 w-8 border-2 border-white">
-                            <AvatarImage src={`https://avatar.vercel.sh/${m.email}`} />
-                            <AvatarFallback>{m.author_name?.charAt(0)}</AvatarFallback>
+                          <Avatar key={m.id} className="h-8 w-8 border-2 border-white bg-transparent">
+                            <AvatarFallback className="bg-transparent text-slate-900 font-bold text-[10px]">{m.author_name?.charAt(0)}</AvatarFallback>
                           </Avatar>
                         ))}
                         {members.length > 8 && (

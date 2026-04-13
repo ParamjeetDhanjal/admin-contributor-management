@@ -21,10 +21,12 @@ export interface Profile {
 
 export interface Story {
   id: string;
+  story_id?: string;
   headline: string;
   user_id: string;
   amount: number;
   created_at: string;
+  is_deleted?: boolean;
   profiles?: Profile & { teams: Team | null };
 }
 

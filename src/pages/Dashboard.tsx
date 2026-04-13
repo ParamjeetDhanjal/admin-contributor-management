@@ -96,7 +96,9 @@ export default function Dashboard() {
   const yearStart = startOfYear(new Date());
   const yearEnd = endOfYear(new Date());
   
-  const yearlyStories = stories.filter(s => {
+  const yearlyStories = (stories || []).filter(s => {
+    if (s.is_deleted) return false;
+    if (!s.created_at) return false;
     const date = parseISO(s.created_at);
     return isWithinInterval(date, { start: yearStart, end: yearEnd });
   });
@@ -158,25 +160,25 @@ export default function Dashboard() {
   const monthlyData = months.map(month => {
     const mStart = startOfMonth(month);
     const mEnd = endOfMonth(month);
-    const mStories = stories.filter(s => isWithinInterval(parseISO(s.created_at), { start: mStart, end: mEnd }));
+    const mStories = (stories || []).filter(s => !s.is_deleted && s.created_at && isWithinInterval(parseISO(s.created_at), { start: mStart, end: mEnd }));
     
     // Filter by active view
     let viewWriters = writers;
     
     if (activeView === 'WebDesk Overall') {
-      const team = teams.find(t => t.name.toLowerCase() === 'webdesk');
+      const team = teams.find(t => (t.name?.toLowerCase() || '') === 'webdesk');
       viewWriters = writers.filter(w => w?.team_id === team?.id);
     } else if (activeView === 'WebDesk Columnist') {
-      const team = teams.find(t => t.name.toLowerCase() === 'webdesk');
+      const team = teams.find(t => (t.name?.toLowerCase() || '') === 'webdesk');
       viewWriters = writers.filter(w => w?.team_id === team?.id && w?.webdesk_category === 'Columnist');
     } else if (activeView === 'WebDesk Writers') {
-      const team = teams.find(t => t.name.toLowerCase() === 'webdesk');
+      const team = teams.find(t => (t.name?.toLowerCase() || '') === 'webdesk');
       viewWriters = writers.filter(w => w?.team_id === team?.id && w?.webdesk_category === 'Desk Writer');
     } else if (activeView === 'Video') {
-      const team = teams.find(t => t.name.toLowerCase() === 'video');
+      const team = teams.find(t => (t.name?.toLowerCase() || '') === 'video');
       viewWriters = writers.filter(w => w?.team_id === team?.id);
     } else if (activeView === 'Social') {
-      const team = teams.find(t => t.name.toLowerCase() === 'social');
+      const team = teams.find(t => (t.name?.toLowerCase() || '') === 'social');
       viewWriters = writers.filter(w => w?.team_id === team?.id);
     }
 

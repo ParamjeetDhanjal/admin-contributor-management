@@ -145,7 +145,7 @@ export default function WriterProfile() {
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="h-4 w-4" />
-              Joined {format(parseISO(profile.created_at), 'MMM yyyy')}
+              Joined {profile.created_at ? format(parseISO(profile.created_at), 'MMM yyyy') : 'N/A'}
             </div>
             <div className="flex items-center gap-1.5">
               <Target className="h-4 w-4" />
