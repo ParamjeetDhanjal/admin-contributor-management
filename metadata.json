@@ -1,0 +1,5 @@
+{
+  "name": "Professional Admin Dashboard",
+  "description": "Enterprise-grade admin dashboard for managing writers, teams, and analytics with Supabase integration.",
+  "requestFramePermissions": []
+}
