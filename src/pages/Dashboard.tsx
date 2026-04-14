@@ -11,7 +11,6 @@ import {
   Legend
 } from 'recharts';
 import { 
-  Download, 
   Users, 
   FileText, 
   IndianRupee,
@@ -191,38 +190,6 @@ export default function Dashboard() {
     };
   });
 
-  const exportToCSV = () => {
-    const headers = ['Name', 'Email', 'Phone', 'Team', 'Structure', 'Pricing', 'Total Tasks', 'Total Spend'];
-    const rows = writers.map(w => {
-      const team = teams.find(t => t.id === w.team_id);
-      const writerStories = stories.filter(s => s.user_id === w.id);
-      const spend = w.pay_structure === 'flat' 
-        ? (w.pricing || 0)
-        : writerStories.reduce((acc, s) => acc + (s.amount || w.pricing || 0), 0);
-      
-      return [
-        `"${w.author_name || 'N/A'}"`,
-        `"${w.email || 'N/A'}"`,
-        `"${w.phone_number || 'N/A'}"`,
-        `"${team?.name || 'N/A'}"`,
-        `"${w.pay_structure || 'N/A'}"`,
-        w.pricing || 0,
-        writerStories.length,
-        spend
-      ];
-    });
-
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `contributor_report_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-96 space-y-4">
@@ -254,10 +221,6 @@ export default function Dashboard() {
           <h1 className="text-4xl font-black tracking-tighter text-slate-900 uppercase">CONTRIBUTORS</h1>
           <p className="text-slate-500 text-sm font-mono uppercase tracking-[0.2em] mt-1">Financial Integrity & Performance Audit</p>
         </div>
-        <Button onClick={exportToCSV} variant="outline" className="gap-2 rounded-xl border-2 h-11 px-6 font-bold">
-          <Download className="h-4 w-4" />
-          EXPORT DATA
-        </Button>
       </div>
 
       {/* Annual Team Spending Overview */}
