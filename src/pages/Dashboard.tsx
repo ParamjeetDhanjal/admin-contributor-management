@@ -102,10 +102,10 @@ export default function Dashboard() {
     return isWithinInterval(date, { start: yearStart, end: yearEnd });
   });
 
-  const calculateSpend = (profileList: Profile[], storyList: Story[]) => {
+  const calculateSpend = (profileList: Profile[], storyList: Story[], months = 1) => {
     const flatFees = profileList
       .filter(w => w.pay_structure === 'flat')
-      .reduce((acc, w) => acc + (w.pricing || 0), 0);
+      .reduce((acc, w) => acc + ((w.pricing || 0) * months), 0);
     
     const taskSpend = storyList
       .filter(s => {
@@ -120,40 +120,27 @@ export default function Dashboard() {
     return flatFees + taskSpend;
   };
 
-  const totalYearlySpend = calculateSpend(writers, yearlyStories);
+  const currentMonthIndex = new Date().getMonth(); // 0-11 (e.g., 3 for April)
+  const totalYearlySpend = calculateSpend(writers, yearlyStories, currentMonthIndex);
 
   const teamSpending = [
-    { name: 'Social', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name === 'Social' },
-    { name: 'Video', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name === 'Video' },
-    { name: 'Webdesk Writers', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name === 'Webdesk' && w.webdesk_category === 'Desk Writer' },
-    { name: 'Webdesk Contributors', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name === 'Webdesk' && w.webdesk_category === 'Columnist' },
+    { name: 'Social', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name?.toLowerCase() === 'social' },
+    { name: 'Video', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name?.toLowerCase() === 'video' },
+    { name: 'Webdesk Writers', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name?.toLowerCase() === 'webdesk' && w.webdesk_category === 'Desk Writer' },
+    { name: 'Webdesk Contributors', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name?.toLowerCase() === 'webdesk' && w.webdesk_category === 'Columnist' },
   ].map(category => {
     const categoryWriters = writers.filter(category.filter);
     const categoryStories = yearlyStories.filter(s => categoryWriters.some(w => w.id === s.user_id));
     
-    const flatFees = categoryWriters
-      .filter(w => w.pay_structure === 'flat')
-      .reduce((acc, w) => acc + (w.pricing || 0), 0);
-    
-    const taskSpend = categoryStories
-      .filter(s => {
-        const w = categoryWriters.find(wr => wr.id === s.user_id);
-        return w?.pay_structure === 'task';
-      })
-      .reduce((acc, s) => {
-        const w = categoryWriters.find(wr => wr.id === s.user_id);
-        return acc + (s.amount || w?.pricing || 0);
-      }, 0);
-
     return {
       name: category.name,
-      spend: flatFees + taskSpend
+      spend: calculateSpend(categoryWriters, categoryStories, currentMonthIndex)
     };
   });
-  // Adjusting to start from 1 month ago to make current month "2nd" as requested
+  // Full year view (Jan to Dec)
   const months = eachMonthOfInterval({
-    start: subMonths(new Date(), 1),
-    end: addMonths(new Date(), 4)
+    start: yearStart,
+    end: yearEnd
   });
 
   const monthlyData = months.map(month => {
