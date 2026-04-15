@@ -189,11 +189,8 @@ export default function Management() {
     }
     setLoading(true);
     try {
-      // Map team name back to ID if needed
-      const selectedTeam = teams.find(t => t.name === newUser.team_id || t.id === newUser.team_id);
       const profileData = {
         ...newUser,
-        team_id: selectedTeam?.id || null,
         is_approved: true,
         role: 'user' as const
       };
@@ -527,12 +524,12 @@ export default function Management() {
                       <SelectValue placeholder="Select Team" />
                     </SelectTrigger>
                     <SelectContent>
-                      {teams.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
+                      {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
 
-                {(newUser.team_id === 'Webdesk' || teams.find(t => t.id === newUser.team_id)?.name === 'Webdesk') && (
+                {teams.find(t => t.id === newUser.team_id)?.name === 'Webdesk' && (
                   <div className="space-y-2 col-span-2">
                     <Label>Webdesk Category</Label>
                     <Select 
