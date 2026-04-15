@@ -102,32 +102,42 @@ export default function Dashboard() {
     return isWithinInterval(date, { start: yearStart, end: yearEnd });
   });
 
-  const calculateSpend = (profileList: Profile[], storyList: Story[], months = 1, referenceDate = new Date()) => {
+  const calculateSpend = (profileList: Profile[], storyList: Story[], months = 1, referenceDate: Date = new Date()) => {
     const flatFees = profileList
       .filter(w => w.pay_structure === 'flat')
       .reduce((acc, w) => {
         let multiplier = 0;
+        const refDate = referenceDate instanceof Date ? referenceDate : new Date();
         if (months > 1) {
           // Annual/YTD calculation
           if (w.created_at) {
-            const createdDate = parseISO(w.created_at);
-            const yearStart = startOfYear(referenceDate);
-            if (createdDate > yearStart) {
+            const createdDate = new Date(w.created_at);
+            const creationYear = createdDate.getFullYear();
+            const currentYear = refDate.getFullYear();
+            
+            if (creationYear === currentYear) {
               const creationMonth = createdDate.getMonth() + 1;
-              const currentMonth = referenceDate.getMonth() + 1;
-              multiplier = Math.max(0, currentMonth - creationMonth + 1);
-            } else {
+              const currentMonth = refDate.getMonth() + 1;
+              // Multiplier is the number of months active in the current year
+              multiplier = Math.max(0, Math.min(months, currentMonth - creationMonth + 1));
+            } else if (creationYear < currentYear) {
+              // Joined in a previous year, active for all months in current YTD
               multiplier = months;
+            } else {
+              // Joined in the future?
+              multiplier = 0;
             }
           } else {
-            multiplier = months;
+            // Fallback if created_at is missing - assume they joined this month
+            // to avoid over-calculating annual spend for new users with missing dates
+            multiplier = 1;
           }
         } else {
           // Single month calculation
           if (w.created_at) {
-            const createdDate = parseISO(w.created_at);
-            // User is paid if they were created on or before the end of the reference month
-            if (createdDate <= endOfMonth(referenceDate)) {
+            const createdDate = new Date(w.created_at);
+            const mEnd = endOfMonth(refDate);
+            if (createdDate <= mEnd) {
               multiplier = 1;
             }
           } else {
@@ -169,8 +179,8 @@ export default function Dashboard() {
   });
   // Full year view (Jan to Dec)
   const months = eachMonthOfInterval({
-    start: subMonths(new Date(), 1),
-    end: addMonths(new Date(), 4)
+    start: yearStart,
+    end: yearEnd
   });
 
   const monthlyData = months.map(month => {
