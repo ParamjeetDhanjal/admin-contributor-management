@@ -203,7 +203,10 @@ export default function Management() {
         await updateWriter(editingUser.id, profileData);
         toast.success('User updated successfully');
       } else {
-        await createProfile(profileData);
+        await createProfile({
+          ...profileData,
+          created_at: new Date().toISOString()
+        });
         toast.success('User added to directory');
       }
       setIsUserDialogOpen(false);
