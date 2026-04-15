@@ -84,11 +84,12 @@ export default function Management() {
 
   React.useEffect(() => {
     if (editingUser) {
+      const team = teams.find(t => t.id === editingUser.team_id);
       setNewUser({
         author_name: editingUser.author_name || '',
         email: editingUser.email || '',
         phone_number: editingUser.phone_number || '',
-        team_id: editingUser.team_id || '',
+        team_id: team?.name || editingUser.team_id || '',
         pay_structure: editingUser.pay_structure || 'task',
         pricing: editingUser.pricing || 0,
         webdesk_category: editingUser.webdesk_category || ''
@@ -104,7 +105,7 @@ export default function Management() {
         webdesk_category: ''
       });
     }
-  }, [editingUser]);
+  }, [editingUser, teams]);
 
   const loadData = async () => {
     try {
@@ -189,8 +190,11 @@ export default function Management() {
     }
     setLoading(true);
     try {
+      // Map team name back to ID
+      const selectedTeam = teams.find(t => t.name === newUser.team_id || t.id === newUser.team_id);
       const profileData = {
         ...newUser,
+        team_id: selectedTeam?.id || null,
         is_approved: true,
         role: 'user' as const
       };
@@ -525,14 +529,14 @@ export default function Management() {
                     </SelectTrigger>
                     <SelectContent>
                       {teams
-                        .filter(t => ['webdesk', 'social', 'video'].includes(t.name?.toLowerCase() || '') || t.id === newUser.team_id)
-                        .map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)
+                        .filter(t => ['webdesk', 'social', 'video'].includes(t.name?.toLowerCase() || '') || t.id === newUser.team_id || t.name === newUser.team_id)
+                        .map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)
                       }
                     </SelectContent>
                   </Select>
                 </div>
 
-                {teams.find(t => t.id === newUser.team_id)?.name === 'Webdesk' && (
+                {(newUser.team_id === 'Webdesk' || teams.find(t => t.id === newUser.team_id)?.name === 'Webdesk') && (
                   <div className="space-y-2 col-span-2">
                     <Label>Webdesk Category</Label>
                     <Select 
