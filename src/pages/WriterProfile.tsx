@@ -147,10 +147,6 @@ export default function WriterProfile() {
               <Clock className="h-4 w-4" />
               Joined {profile.created_at ? format(parseISO(profile.created_at), 'MMM yyyy') : 'N/A'}
             </div>
-            <div className="flex items-center gap-1.5">
-              <Target className="h-4 w-4" />
-              ID: {profile.id.slice(0, 8)}
-            </div>
           </div>
         </div>
       </div>
