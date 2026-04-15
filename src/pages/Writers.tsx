@@ -142,7 +142,6 @@ export default function Writers() {
                       </Avatar>
                       <div className="flex flex-col">
                         <span className="font-medium text-slate-900">{writer.author_name || 'Anonymous'}</span>
-                        <span className="text-[10px] text-slate-400 font-mono uppercase">ID: {writer.id.slice(0, 8)}</span>
                       </div>
                     </div>
                   </TableCell>
