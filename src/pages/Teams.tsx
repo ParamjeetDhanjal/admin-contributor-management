@@ -218,9 +218,6 @@ export default function Teams() {
               </div>
 
               <div className="pt-4 flex items-center justify-between border-t border-slate-100">
-                <Badge variant="outline" className="text-[10px] font-mono text-slate-400 py-0">
-                  ID: {team.id.slice(0, 8)}
-                </Badge>
               </div>
             </CardContent>
           </Card>
