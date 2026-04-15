@@ -179,8 +179,8 @@ export default function Dashboard() {
   });
   // Full year view (Jan to Dec)
   const months = eachMonthOfInterval({
-    start: yearStart,
-    end: yearEnd
+    start: subMonths(new Date(), 1),
+    end: addMonths(new Date(), 4)
   });
 
   const monthlyData = months.map(month => {
