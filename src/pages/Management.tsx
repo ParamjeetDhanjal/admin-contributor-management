@@ -140,7 +140,7 @@ export default function Management() {
       }
 
       setWriters(writersData || []);
-      setTeams(updatedTeams.filter(t => ['webdesk', 'social', 'video'].includes(t.name?.toLowerCase() || '')));
+      setTeams(updatedTeams);
     } catch (error: any) {
       console.error('Error loading data:', error);
       toast.error('Failed to load management data');
