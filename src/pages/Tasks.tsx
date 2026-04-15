@@ -141,7 +141,7 @@ export default function Tasks() {
       if (selectedCategory === 'Social') categoryMatch = teamName === 'social';
       else if (selectedCategory === 'Video') categoryMatch = teamName === 'video';
       else if (selectedCategory === 'Webdesk Writers') categoryMatch = teamName === 'webdesk' && s.profiles?.webdesk_category === 'Desk Writer';
-      else if (selectedCategory === 'Webdesk Contributors') categoryMatch = teamName === 'webdesk' && s.profiles?.webdesk_category === 'Columnist';
+      else if (selectedCategory === 'Webdesk Columnist') categoryMatch = teamName === 'webdesk' && s.profiles?.webdesk_category === 'Columnist';
     }
     
     // Headline search match
