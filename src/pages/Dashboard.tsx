@@ -150,10 +150,10 @@ export default function Dashboard() {
       spend: flatFees + taskSpend
     };
   });
-  // Full year view (Jan to Dec)
+  // Adjusting to start from 1 month ago to make current month "2nd" as requested
   const months = eachMonthOfInterval({
-    start: yearStart,
-    end: yearEnd
+    start: subMonths(new Date(), 1),
+    end: addMonths(new Date(), 4)
   });
 
   const monthlyData = months.map(month => {
