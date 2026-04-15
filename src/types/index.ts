@@ -17,6 +17,7 @@ export interface Profile {
   role: 'admin' | 'user';
   is_approved: boolean;
   team?: Team;
+  created_at?: string;
 }
 
 export interface Story {
