@@ -102,10 +102,40 @@ export default function Dashboard() {
     return isWithinInterval(date, { start: yearStart, end: yearEnd });
   });
 
-  const calculateSpend = (profileList: Profile[], storyList: Story[], months = 1) => {
+  const calculateSpend = (profileList: Profile[], storyList: Story[], months = 1, referenceDate = new Date()) => {
     const flatFees = profileList
       .filter(w => w.pay_structure === 'flat')
-      .reduce((acc, w) => acc + ((w.pricing || 0) * months), 0);
+      .reduce((acc, w) => {
+        let multiplier = 0;
+        if (months > 1) {
+          // Annual/YTD calculation
+          if (w.created_at) {
+            const createdDate = parseISO(w.created_at);
+            const yearStart = startOfYear(referenceDate);
+            if (createdDate > yearStart) {
+              const creationMonth = createdDate.getMonth() + 1;
+              const currentMonth = referenceDate.getMonth() + 1;
+              multiplier = Math.max(0, currentMonth - creationMonth + 1);
+            } else {
+              multiplier = months;
+            }
+          } else {
+            multiplier = months;
+          }
+        } else {
+          // Single month calculation
+          if (w.created_at) {
+            const createdDate = parseISO(w.created_at);
+            // User is paid if they were created on or before the end of the reference month
+            if (createdDate <= endOfMonth(referenceDate)) {
+              multiplier = 1;
+            }
+          } else {
+            multiplier = 1;
+          }
+        }
+        return acc + ((w.pricing || 0) * multiplier);
+      }, 0);
     
     const taskSpend = storyList
       .filter(s => {
@@ -127,7 +157,7 @@ export default function Dashboard() {
     { name: 'Social', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name?.toLowerCase() === 'social' },
     { name: 'Video', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name?.toLowerCase() === 'video' },
     { name: 'Webdesk Writers', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name?.toLowerCase() === 'webdesk' && w.webdesk_category === 'Desk Writer' },
-    { name: 'Webdesk Contributors', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name?.toLowerCase() === 'webdesk' && w.webdesk_category === 'Columnist' },
+    { name: 'Webdesk Columnists', filter: (w: Profile) => teams.find(t => t.id === w.team_id)?.name?.toLowerCase() === 'webdesk' && w.webdesk_category === 'Columnist' },
   ].map(category => {
     const categoryWriters = writers.filter(category.filter);
     const categoryStories = yearlyStories.filter(s => categoryWriters.some(w => w.id === s.user_id));
@@ -172,7 +202,7 @@ export default function Dashboard() {
 
     return {
       month: format(month, 'MMM'),
-      spend: calculateSpend(viewWriters, viewStories),
+      spend: calculateSpend(viewWriters, viewStories, 1, month),
       tasks: viewStories.length
     };
   });
