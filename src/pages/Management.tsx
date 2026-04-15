@@ -140,7 +140,7 @@ export default function Management() {
       }
 
       setWriters(writersData || []);
-      setTeams(updatedTeams.filter(t => ['webdesk', 'social', 'video'].includes(t.name?.toLowerCase() || '')));
+      setTeams(updatedTeams);
     } catch (error: any) {
       console.error('Error loading data:', error);
       toast.error('Failed to load management data');
@@ -524,7 +524,10 @@ export default function Management() {
                       <SelectValue placeholder="Select Team" />
                     </SelectTrigger>
                     <SelectContent>
-                      {teams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                      {teams
+                        .filter(t => ['webdesk', 'social', 'video'].includes(t.name?.toLowerCase() || '') || t.id === newUser.team_id)
+                        .map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)
+                      }
                     </SelectContent>
                   </Select>
                 </div>
