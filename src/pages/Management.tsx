@@ -271,6 +271,7 @@ export default function Management() {
               <TableHead>User</TableHead>
               <TableHead>Contact & Role</TableHead>
               <TableHead>Team & Category</TableHead>
+              <TableHead>Joined</TableHead>
               <TableHead>Pay</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -325,6 +326,16 @@ export default function Management() {
                         {writer.webdesk_category && (
                           <span className="text-[10px] font-mono text-slate-400 uppercase">{writer.webdesk_category}</span>
                         )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-medium text-slate-600">
+                          {writer.created_at ? new Date(writer.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : 'N/A'}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {writer.created_at ? new Date(writer.created_at).toLocaleDateString() : ''}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
