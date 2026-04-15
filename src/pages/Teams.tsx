@@ -46,7 +46,9 @@ export default function Teams() {
   const loadData = async () => {
     try {
       const data = await fetchTeams();
-      setTeams(data);
+      setTeams((data || []).filter(t => 
+        ['webdesk', 'social', 'video'].includes(t.name?.toLowerCase() || '')
+      ));
     } catch (error: any) {
       console.error('Error loading teams:', error);
       toast.error('Failed to load teams');
